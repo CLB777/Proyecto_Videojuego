@@ -169,19 +169,47 @@ body {
   display: block;
 }
 
-/* Pokemon Card Design */
+/* Pokemon V-Card Premium Full-Art Design */
 .tcg-card {
-  background: #111;
-  border-radius: 12px;
-  border: 2px solid #333;
-  transition: all 0.3s ease;
+  background: #0f0f15;
+  border-radius: 14px;
+  border: 2px solid #2a2a35;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   cursor: pointer;
   perspective: 1000px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
+
+/* Holographic sweep sheen */
+.tcg-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.08) 42%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.08) 58%,
+    transparent 65%
+  );
+  background-size: 300% 300%;
+  background-position: 0% 0%;
+  transition: background-position 0.5s ease;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.tcg-card:hover::before {
+  background-position: 100% 100%;
+}
+
 .tcg-card.selected {
   border-color: var(--neon-pink);
-  box-shadow: 0 0 20px rgba(255,0,255,0.4);
+  box-shadow: 0 0 25px rgba(255, 0, 255, 0.6), inset 0 0 10px rgba(255,0,255,0.3);
+  transform: translateY(-8px) scale(1.02);
 }
 
 /* 3D Flip mechanics */
@@ -199,9 +227,8 @@ body {
 
 .tcg-card-front, .tcg-card-back {
   backface-visibility: hidden;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  background: #111;
 }
 
 .tcg-card-front {
@@ -217,56 +244,179 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   transform: rotateY(180deg);
-  background: url('https://upload.wikimedia.org/wikipedia/en/3/3b/Pokemon_Trading_Card_Game_cardback.jpg') center/cover;
+  background: url('https://upload.wikimedia.org/wikipedia/en/3/3b/Pokemon_Trading_Card_Game_cardback.jpg') center center/cover no-repeat;
   border: 2px solid var(--neon-purple);
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
 }
 
-.tcg-image-container {
+/* Type Specific Gradients & Neon Border glows */
+.type-fire {
+  background: linear-gradient(135deg, #1f0505 0%, #520b0b 45%, #9c1b00 100%);
+  border-color: #ff3300 !important;
+}
+.type-fire:hover { box-shadow: 0 10px 25px rgba(255, 51, 0, 0.45); }
+
+.type-water {
+  background: linear-gradient(135deg, #021024 0%, #0a3363 45%, #056fa1 100%);
+  border-color: #00f3ff !important;
+}
+.type-water:hover { box-shadow: 0 10px 25px rgba(0, 243, 255, 0.45); }
+
+.type-grass {
+  background: linear-gradient(135deg, #031405 0%, #094715 45%, #0ba828 100%);
+  border-color: #00ff66 !important;
+}
+.type-grass:hover { box-shadow: 0 10px 25px rgba(0, 255, 102, 0.45); }
+
+.type-electric {
+  background: linear-gradient(135deg, #1f1d02 0%, #52470a 45%, #a88a0b 100%);
+  border-color: #ffff00 !important;
+}
+.type-electric:hover { box-shadow: 0 10px 25px rgba(255, 255, 0, 0.45); }
+
+.type-psychic {
+  background: linear-gradient(135deg, #13011a 0%, #3f0952 45%, #7609a6 100%);
+  border-color: #ff00ff !important;
+}
+.type-psychic:hover { box-shadow: 0 10px 25px rgba(255, 0, 255, 0.45); }
+
+.type-normal {
+  background: linear-gradient(135deg, #121212 0%, #29292c 45%, #525257 100%);
+  border-color: #b0b0b8 !important;
+}
+.type-normal:hover { box-shadow: 0 10px 25px rgba(176, 176, 184, 0.35); }
+
+/* V-Card Header Elements */
+.tcg-header-v {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0,0,0,0.35);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-family: var(--font-main);
+  z-index: 10;
+}
+
+.tcg-badge-v {
+  background: linear-gradient(135deg, #ffe600, #ff7b00);
+  color: #000;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 900;
+  margin-right: 4px;
+  box-shadow: 0 0 6px #ffe600;
+  letter-spacing: 1px;
+}
+
+/* Card image art */
+.tcg-image-container-v {
   flex: 1;
-  min-height: 120px;
-  background: #1a1a24;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 2px solid #333;
-}
-.tcg-image-container img {
-  height: 90px;
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
-  transition: transform 0.3s ease;
-}
-.tcg-card:hover .tcg-image-container img {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 15px var(--neon-cyan));
-}
-.tcg-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--neon-cyan);
-  box-shadow: 0 10px 20px rgba(0,243,255,0.2);
+  position: relative;
+  background: transparent;
+  min-height: 110px;
+  overflow: hidden;
 }
 
-.tcg-content { padding: 1rem; }
-.tcg-name {
+.tcg-image-container-v img {
+  height: 95px;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.75));
+  z-index: 2;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tcg-card:hover .tcg-image-container-v img {
+  transform: scale(1.14) translateY(-3px);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.85));
+}
+
+/* Interactive Attack Panel inside Card */
+.tcg-attack-panel-v {
+  background: rgba(10, 10, 15, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 10;
+}
+
+.tcg-attack-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.02);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.tcg-attack-row.interactive {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.tcg-attack-row.interactive:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.3);
+  transform: scale(1.02);
+}
+
+.tcg-attack-row.interactive.active-atk {
+  animation: pulseGlowAtk 1.8s infinite;
+  border-color: var(--neon-cyan);
+}
+
+.tcg-attack-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.tcg-attack-name {
+  font-size: 0.72rem;
   font-weight: 800;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tcg-stats {
-  display: flex;
-  justify-content: space-between;
-  background: rgba(0,0,0,0.5);
-  border-radius: 6px;
-  padding: 0.5rem;
+
+.tcg-attack-damage {
   font-size: 0.75rem;
-  font-weight: bold;
+  font-weight: 900;
+  color: #ffdd55;
+  text-shadow: 0 0 4px rgba(255,221,85,0.5);
 }
-.tcg-stat-atk { color: var(--neon-pink); }
-.tcg-stat-def { color: var(--neon-cyan); }
-.tcg-stat-hp { color: var(--neon-green); }
+
+/* Energy cost indicators */
+.energy-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 0.55rem;
+  font-weight: 900;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  flex-shrink: 0;
+}
+.energy-fire { background: radial-gradient(circle, #ff6600, #dd0000); }
+.energy-water { background: radial-gradient(circle, #00bbff, #0044cc); }
+.energy-grass { background: radial-gradient(circle, #00ff55, #006600); }
+.energy-electric { background: radial-gradient(circle, #ffff00, #996600); color: #000; border-color: rgba(0,0,0,0.15); }
+.energy-psychic { background: radial-gradient(circle, #ff00ff, #8800cc); }
+.energy-normal { background: radial-gradient(circle, #bbbbbb, #444444); }
 
 .tcg-rarity {
   position: absolute;
@@ -274,11 +424,12 @@ body {
   right: 8px;
   font-size: 0.6rem;
   padding: 2px 6px;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   border-radius: 4px;
   text-transform: uppercase;
   font-weight: 900;
   border: 1px solid #555;
+  z-index: 12;
 }
 .tcg-rarity.Legendaria { color: var(--neon-cyan); border-color: var(--neon-cyan); }
 .tcg-rarity.Rara { color: var(--neon-pink); border-color: var(--neon-pink); }
@@ -509,34 +660,191 @@ body {
 /* Projectile travel animations */
 @keyframes travelPlayer {
   0% { transform: translate(-50%, 150px) scale(1); opacity: 1; }
-  50% { transform: translate(-50%, 0px) scale(2.2); filter: hue-rotate(45deg); }
+  50% { transform: translate(-50%, 0px) scale(2.2); }
   100% { transform: translate(-50%, -150px) scale(0.6); opacity: 0; }
 }
 @keyframes travelEnemy {
   0% { transform: translate(-50%, -150px) scale(1); opacity: 1; }
-  50% { transform: translate(-50%, 0px) scale(2.2); filter: hue-rotate(-45deg); }
+  50% { transform: translate(-50%, 0px) scale(2.2); }
   100% { transform: translate(-50%, 150px) scale(0.6); opacity: 0; }
+}
+
+@keyframes leafSpin {
+  0% { transform: translate(-50%, 150px) rotate(0deg) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, 0px) rotate(360deg) scale(2); }
+  100% { transform: translate(-50%, -150px) rotate(720deg) scale(0.6); opacity: 0; }
+}
+
+@keyframes leafSpinEnemy {
+  0% { transform: translate(-50%, -150px) rotate(0deg) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, 0px) rotate(-360deg) scale(2); }
+  100% { transform: translate(-50%, 150px) rotate(-720deg) scale(0.6); opacity: 0; }
 }
 
 .attack-projectile {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 200;
 }
 
+/* Custom type based projectile styles */
+.electric-proj {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 0 15px #ffff00, 0 0 30px #ffa500, 0 0 45px #ffff00;
+  width: 15px;
+  height: 45px;
+  transform: rotate(45deg);
+}
+
+.fire-proj {
+  background: radial-gradient(circle, #fff, #ff5500 50%, #cc0000 90%);
+  box-shadow: 0 0 20px #ff3300, 0 0 40px #ffaa00;
+}
+
+.water-proj {
+  background: radial-gradient(circle, #ffffff, #00ccff 50%, #0044cc 90%);
+  box-shadow: 0 0 15px #00aaff, 0 0 30px #0055ff;
+}
+
+.grass-proj {
+  background: #00ff55;
+  border-radius: 50% 0 50% 0;
+  box-shadow: 0 0 15px #00ff66, 0 0 30px #008822;
+  transform: rotate(15deg);
+}
+
+.psychic-proj {
+  background: radial-gradient(circle, #fff, #b026ff 60%, #ff00ff);
+  box-shadow: 0 0 20px #b026ff, 0 0 40px #ff00ff;
+}
+
+.normal-proj {
+  background: radial-gradient(circle, #fff, #999 50%, #444);
+  box-shadow: 0 0 15px #aaa, 0 0 30px #444;
+}
+
 .attack-projectile.player-atk {
-  background: radial-gradient(circle, #fff 10%, var(--neon-cyan) 60%, transparent 100%);
-  box-shadow: 0 0 25px var(--neon-cyan), 0 0 50px var(--neon-cyan);
   animation: travelPlayer 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .attack-projectile.enemy-atk {
-  background: radial-gradient(circle, #fff 10%, var(--neon-red) 60%, transparent 100%);
-  box-shadow: 0 0 25px var(--neon-red), 0 0 50px var(--neon-red);
   animation: travelEnemy 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Override animations for leaf spin */
+.attack-projectile.grass-proj.player-atk {
+  animation: leafSpin 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.attack-projectile.grass-proj.enemy-atk {
+  animation: leafSpinEnemy 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* MOBILE RESPONSIVE MEDIA QUERIES */
+@media (max-width: 900px) {
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hud-container {
+    padding: 0.5rem 1rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center !important;
+  }
+  .hud-info {
+    min-width: 140px !important;
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+  .hud-title {
+    font-size: 1.2rem !important;
+    width: 100%;
+    text-align: center;
+    order: -1;
+    margin-bottom: 0.2rem;
+  }
+  
+  .combat-card-wrapper {
+    width: 135px !important;
+    height: 195px !important;
+    transform: scale(1.0) !important;
+  }
+  
+  .combat-card-wrapper .tcg-image-container-v {
+    min-height: 70px !important;
+  }
+  .combat-card-wrapper .tcg-image-container-v img {
+    height: 60px !important;
+  }
+  .combat-card-wrapper .tcg-header-v {
+    padding: 0.25rem 0.4rem !important;
+  }
+  .combat-card-wrapper .tcg-header-v div {
+    font-size: 0.7rem !important;
+  }
+  .combat-card-wrapper .tcg-attack-panel-v {
+    padding: 0.25rem !important;
+    gap: 0.2rem !important;
+  }
+  .combat-card-wrapper .tcg-attack-row {
+    padding: 0.15rem 0.3rem !important;
+  }
+  .combat-card-wrapper .tcg-attack-name, 
+  .combat-card-wrapper .tcg-attack-damage {
+    font-size: 0.6rem !important;
+  }
+  .combat-card-wrapper .energy-badge {
+    width: 10px !important;
+    height: 10px !important;
+    font-size: 0.45rem !important;
+  }
+  
+  .turn-banner {
+    font-size: 2rem !important;
+    letter-spacing: 4px !important;
+  }
+  
+  .bench-container {
+    height: 130px !important;
+    padding: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .bench-container .tcg-card {
+    width: 80px !important;
+    height: 110px !important;
+    min-width: 80px !important;
+  }
+  .bench-container .tcg-image-container-v {
+    min-height: 50px !important;
+  }
+  .bench-container .tcg-image-container-v img {
+    height: 40px !important;
+  }
+  .bench-container .tcg-content {
+    padding: 0.25rem !important;
+  }
+  .bench-container .tcg-name {
+    font-size: 0.65rem !important;
+  }
+  
+  .floating-damage {
+    font-size: 1.8rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .hub-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
 }

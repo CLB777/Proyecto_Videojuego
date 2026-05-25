@@ -20,7 +20,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
       </div>
 
       <!-- Header HUD Premium sin encimarse -->
-      <div style="background: rgba(10, 10, 15, 0.85); border-bottom: 2px solid rgba(255,255,255,0.1); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 90; backdrop-filter: blur(5px); position: relative;">
+      <div class="hud-container" style="background: rgba(10, 10, 15, 0.85); border-bottom: 2px solid rgba(255,255,255,0.1); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 90; backdrop-filter: blur(5px); position: relative;">
         <!-- Botón Rendirse -->
         <div>
           <button class="btn" style="border-color: var(--neon-red); color: #fff; background: rgba(255,51,51,0.25); font-size: 0.9rem; padding: 0.5rem 1.5rem; transition: all 0.3s; box-shadow: 0 0 10px rgba(255,51,51,0.2);" (click)="abandonGame()">
@@ -29,7 +29,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
         </div>
 
         <!-- Info Oponente -->
-        <div class="glass-panel" style="padding: 0.5rem 1rem; border-color: var(--neon-red); background: rgba(20,0,0,0.5); min-width: 200px; text-align: center;">
+        <div class="glass-panel hud-info" style="padding: 0.5rem 1rem; border-color: var(--neon-red); background: rgba(20,0,0,0.5); min-width: 200px; text-align: center;">
           <div style="font-size: 0.75rem; color: var(--neon-red); text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
             Rival {{ isOnline ? '(En Linea)' : '(IA - ' + difficulty + ')' }}
           </div>
@@ -37,14 +37,14 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
         </div>
 
         <!-- Turno Central -->
-        <div style="text-align: center;">
+        <div class="hud-title">
           <div class="glow-text-pink" style="font-size: 1.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; line-height: 1;">
             TURNO {{ turn }}
           </div>
         </div>
 
         <!-- Info Jugador -->
-        <div class="glass-panel" style="padding: 0.5rem 1rem; border-color: var(--neon-cyan); background: rgba(0,20,40,0.5); min-width: 200px; text-align: center;">
+        <div class="glass-panel hud-info" style="padding: 0.5rem 1rem; border-color: var(--neon-cyan); background: rgba(0,20,40,0.5); min-width: 200px; text-align: center;">
           <div style="font-size: 0.75rem; color: var(--neon-cyan); text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
             {{ username || 'Entrenador' }}
           </div>
@@ -76,7 +76,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           
           <!-- Elemento de Proyectil de Ataque Elemental -->
           <div *ngIf="attackProjectile" 
-               [ngClass]="attackProjectile"
+               [ngClass]="[attackProjectileType, attackProjectileDirection]"
                class="attack-projectile">
           </div>
 
@@ -85,20 +85,33 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
             <div *ngIf="opponentDamage" class="floating-damage">{{ opponentDamage }}</div>
             <div *ngIf="opponentEffectiveMsg" style="position: absolute; top: -30px; color: var(--neon-pink); font-weight: 900; font-size: 1.5rem; text-shadow: 0 0 10px #000; animation: summonCard 0.3s forwards; z-index: 60;">{{ opponentEffectiveMsg }}</div>
             
-            <div class="tcg-card" [class.is-hidden]="turn === 1 && activeTurn === 'player' && !playerActive" [class.flash-red]="opponentFlash" [class.faint-animation]="opponentFainting" style="width: 180px; height: 260px; border-color: var(--neon-red); transform: scale(1.2);">
+            <div class="tcg-card combat-card-wrapper" [class.is-hidden]="turn === 1 && activeTurn === 'player' && !playerActive" [class.flash-red]="opponentFlash" [class.faint-animation]="opponentFainting">
               <div class="tcg-flip-inner">
-                <div class="tcg-card-front" *ngIf="opponentActive">
-                  <div class="tcg-image-container" style="min-height: 120px;"><img [src]="opponentActive.image" style="height: 100px;"></div>
-                  <div class="tcg-content" style="padding: 0.5rem; text-align: center;">
-                    <div style="font-size: 1rem; font-weight: bold;">
-                      {{ opponentActive.name }} <span *ngIf="opponentActive.level && opponentActive.level > 1" style="color: var(--neon-pink); font-size: 0.8rem; font-weight: bold; margin-left: 3px;">Nv. {{ opponentActive.level }}</span>
+                <div class="tcg-card-front" [ngClass]="'type-' + (opponentActive.types[0]?.toLowerCase() || 'normal')" *ngIf="opponentActive">
+                  <!-- Header: Nombre + HP -->
+                  <div class="tcg-header-v">
+                    <div style="display: flex; align-items: center; font-weight: 900; font-size: 0.9rem; color: #fff;">
+                      <span class="tcg-badge-v">V</span>{{ opponentActive.name }}
+                      <span *ngIf="opponentActive.level && opponentActive.level > 1" style="color: var(--neon-pink); font-size: 0.75rem; font-weight: bold; margin-left: 4px;">Nv. {{ opponentActive.level }}</span>
                     </div>
-                    <div style="font-size: 0.8rem; color: #ff5555; font-weight: 900;">ATK: {{ opponentActive.attack }} | DEF: {{ opponentActive.defense }}</div>
-                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Tipo: {{ opponentActive.types[0] }}</div>
-                    <div style="margin-top: 0.5rem; background: #333; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #000;">
-                       <div style="background: linear-gradient(90deg, #f00, #ff0); height: 100%; transition: width 0.5s;" [style.width.%]="(opponentActive.hp / opponentActiveMaxHP) * 100"></div>
+                    <div style="font-size: 0.85rem; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 4px;">
+                      HP {{ opponentActive.hp | number:'1.0-0' }}
+                      <span class="energy-badge" [ngClass]="'energy-' + (opponentActive.types[0]?.toLowerCase() || 'normal')"></span>
                     </div>
-                    <div style="font-size: 0.8rem; margin-top: 2px; font-weight: bold;">HP: {{ opponentActive.hp | number:'1.0-0' }} / {{ opponentActiveMaxHP }}</div>
+                  </div>
+                  <!-- Imagen -->
+                  <div class="tcg-image-container-v">
+                    <img [src]="opponentActive.image">
+                  </div>
+                  <!-- Panel de Ataques -->
+                  <div class="tcg-attack-panel-v">
+                    <div *ngFor="let atk of getCardAttacks(opponentActive); let i = index" class="tcg-attack-row">
+                      <div class="tcg-attack-info">
+                        <span class="energy-badge" [ngClass]="'energy-' + (i === 1 ? (opponentActive.types[0]?.toLowerCase() || 'normal') : 'normal')"></span>
+                        <span class="tcg-attack-name">{{ atk.name }}</span>
+                      </div>
+                      <span class="tcg-attack-damage">{{ atk.damage }}</span>
+                    </div>
                   </div>
                 </div>
                 <div class="tcg-card-back"></div>
@@ -106,21 +119,23 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
             </div>
           </div>
 
-          <!-- Botón de Ataque Épico (Solo visible en tu turno si tienes activo) -->
-          <div style="height: 60px; display: flex; align-items: center; justify-content: center; z-index: 50;">
-            <button *ngIf="activeTurn === 'player' && playerActive && opponentActive && !playerFainting && !opponentFainting" 
-                    class="btn" 
-                    [disabled]="actionBlocked || isAttacking"
-                    [style.opacity]="(actionBlocked || isAttacking) ? 0.4 : 1"
-                    [style.pointer-events]="(actionBlocked || isAttacking) ? 'none' : 'auto'"
-                    [style.cursor]="(actionBlocked || isAttacking) ? 'not-allowed' : 'pointer'"
-                    [style.animation]="(actionBlocked || isAttacking) ? 'none' : 'pulse 1.5s infinite'"
-                    style="border: 3px solid var(--neon-pink); color: #fff; background: rgba(255,0,255,0.2); font-size: 2rem; font-weight: 900; padding: 0.5rem 3rem; text-shadow: 0 0 10px var(--neon-pink); box-shadow: 0 0 20px rgba(255,0,255,0.5); border-radius: 50px;"
-                    (click)="attackOpponent()">
-              ATACAR
-            </button>
-            <div *ngIf="!playerActive && activeTurn === 'player' && !gameOver" style="font-size: 1.5rem; color: var(--neon-cyan); font-weight: bold; animation: pulse 1s infinite;">
-              SELECCIONA UN POKÉMON DE TU BANCA
+          <!-- Centro: Indicadores de Acción y Guías -->
+          <div style="height: 50px; display: flex; align-items: center; justify-content: center; z-index: 50;">
+            <div *ngIf="activeTurn === 'player' && playerActive && opponentActive && !playerFainting && !opponentFainting && !isAttacking" 
+                 style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 8px var(--neon-cyan); animation: pulse 1.5s infinite; text-align: center;">
+              ¡HAZ CLIC EN UN ATAQUE DE TU CARTA PARA COMBATIR!
+            </div>
+            <div *ngIf="activeTurn === 'player' && isAttacking" 
+                 style="font-size: 1.1rem; color: var(--neon-pink); font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 8px var(--neon-pink); text-align: center;">
+              EJECUTANDO MOVIMIENTO...
+            </div>
+            <div *ngIf="activeTurn === 'enemy' && !gameOver" 
+                 style="font-size: 1.1rem; color: var(--neon-red); font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 8px var(--neon-red); text-align: center;">
+              EL RIVAL ESTÁ PREPARANDO SU ATAQUE...
+            </div>
+            <div *ngIf="!playerActive && activeTurn === 'player' && !gameOver" 
+                 style="font-size: 1.2rem; color: var(--neon-cyan); font-weight: bold; animation: pulse 1s infinite; letter-spacing: 1px; text-align: center;">
+              SELECCIONA UN POKÉMON DE TU BANCA PARA PELEAR
             </div>
           </div>
 
@@ -129,20 +144,37 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
             <div *ngIf="playerDamage" class="floating-damage">{{ playerDamage }}</div>
             <div *ngIf="playerEffectiveMsg" style="position: absolute; top: -30px; color: var(--neon-pink); font-weight: 900; font-size: 1.5rem; text-shadow: 0 0 10px #000; animation: summonCard 0.3s forwards; z-index: 60;">{{ playerEffectiveMsg }}</div>
             
-            <div class="tcg-card" [class.summon-animation]="playerJustSummoned" [class.flash-red]="playerFlash" [class.faint-animation]="playerFainting" style="width: 180px; height: 260px; border-color: var(--neon-cyan); transform: scale(1.2);">
+            <div class="tcg-card combat-card-wrapper" [class.summon-animation]="playerJustSummoned" [class.flash-red]="playerFlash" [class.faint-animation]="playerFainting">
               <div class="tcg-flip-inner">
-                <div class="tcg-card-front" *ngIf="playerActive">
-                  <div class="tcg-image-container" style="min-height: 120px;"><img [src]="playerActive.image" style="height: 100px;"></div>
-                  <div class="tcg-content" style="padding: 0.5rem; text-align: center;">
-                    <div style="font-size: 1rem; font-weight: bold;">
-                      {{ playerActive.name }} <span *ngIf="playerActive.level && playerActive.level > 1" style="color: var(--neon-pink); font-size: 0.8rem; font-weight: bold; margin-left: 3px;">Nv. {{ playerActive.level }}</span>
+                <div class="tcg-card-front" [ngClass]="'type-' + (playerActive.types[0]?.toLowerCase() || 'normal')" *ngIf="playerActive">
+                  <!-- Header: Nombre + HP -->
+                  <div class="tcg-header-v">
+                    <div style="display: flex; align-items: center; font-weight: 900; font-size: 0.9rem; color: #fff;">
+                      <span class="tcg-badge-v">V</span>{{ playerActive.name }}
+                      <span *ngIf="playerActive.level && playerActive.level > 1" style="color: var(--neon-pink); font-size: 0.75rem; font-weight: bold; margin-left: 4px;">Nv. {{ playerActive.level }}</span>
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--neon-cyan); font-weight: 900;">ATK: {{ playerActive.attack }} | DEF: {{ playerActive.defense }}</div>
-                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Tipo: {{ playerActive.types[0] }}</div>
-                    <div style="margin-top: 0.5rem; background: #333; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #000;">
-                       <div style="background: linear-gradient(90deg, #0f0, #0ff); height: 100%; transition: width 0.5s;" [style.width.%]="(playerActive.hp / playerActiveMaxHP) * 100"></div>
+                    <div style="font-size: 0.85rem; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 4px;">
+                      HP {{ playerActive.hp | number:'1.0-0' }}
+                      <span class="energy-badge" [ngClass]="'energy-' + (playerActive.types[0]?.toLowerCase() || 'normal')"></span>
                     </div>
-                    <div style="font-size: 0.8rem; margin-top: 2px; font-weight: bold;">HP: {{ playerActive.hp | number:'1.0-0' }} / {{ playerActiveMaxHP }}</div>
+                  </div>
+                  <!-- Imagen -->
+                  <div class="tcg-image-container-v">
+                    <img [src]="playerActive.image">
+                  </div>
+                  <!-- Panel de Ataques (Estilo Mewtwo V, INTERACTIVO para el jugador) -->
+                  <div class="tcg-attack-panel-v">
+                    <div *ngFor="let atk of getCardAttacks(playerActive); let idx = index" 
+                         (click)="!actionBlocked && !isAttacking && attackOpponent(idx + 1)"
+                         [class.interactive]="!actionBlocked && !isAttacking"
+                         [class.active-atk]="activeTurn === 'player' && !actionBlocked && !isAttacking"
+                         class="tcg-attack-row">
+                      <div class="tcg-attack-info">
+                        <span class="energy-badge" [ngClass]="'energy-' + (idx === 1 ? (playerActive.types[0]?.toLowerCase() || 'normal') : 'normal')"></span>
+                        <span class="tcg-attack-name">{{ atk.name }}</span>
+                      </div>
+                      <span class="tcg-attack-damage">{{ atk.damage }}</span>
+                    </div>
                   </div>
                 </div>
                 <div class="tcg-card-front" *ngIf="!playerActive" style="align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
@@ -154,21 +186,28 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
         </div>
 
         <!-- Banca del Jugador -->
-        <div style="height: 180px; background: rgba(0,0,0,0.85); border-top: 4px solid var(--neon-purple); display: flex; gap: 1.5rem; padding: 1.5rem; overflow-x: auto; align-items: flex-end; justify-content: center; border-radius: 12px 12px 0 0; z-index: 10; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); position: relative;">
+        <div class="bench-container" style="height: 180px; background: rgba(0,0,0,0.85); border-top: 4px solid var(--neon-purple); display: flex; gap: 1.5rem; padding: 1.5rem; overflow-x: auto; align-items: flex-end; justify-content: center; border-radius: 12px 12px 0 0; z-index: 10; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); position: relative;">
           
-          <div style="position: absolute; left: 1rem; bottom: 150px; color: var(--neon-purple); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">Tu Banca</div>
+          <div style="position: absolute; left: 1rem; bottom: 145px; color: var(--neon-purple); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">Tu Banca</div>
           <div *ngFor="let card of playerBench; let i = index" 
                (click)="setActivePokemon(i)"
-               class="tcg-card" style="width: 120px; height: 160px; min-width: 120px; transition: transform 0.3s; transform-origin: bottom; cursor: pointer; border-color: #555;"
-               [style.opacity]="(activeTurn === 'player' && !playerActive) ? 1 : 0.5">
+               [ngClass]="'type-' + (card.types[0]?.toLowerCase() || 'normal')"
+               class="tcg-card" style="width: 120px; height: 160px; min-width: 120px; transition: transform 0.3s; transform-origin: bottom; cursor: pointer;"
+               [style.opacity]="!playerActive ? 1 : 0.5">
             <div class="tcg-flip-inner">
-              <div class="tcg-card-front">
-                <div class="tcg-image-container" style="min-height: 80px; background: transparent;"><img [src]="card.image" style="height: 60px;"></div>
-                <div class="tcg-content" style="padding: 0.3rem; text-align: center;">
-                  <div style="font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    {{ card.name }} <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.7rem; font-weight: bold; margin-left: 2px;">Nv. {{ card.level }}</span>
+              <div class="tcg-card-front" style="background: transparent;">
+                <div class="tcg-header-v" style="padding: 0.2rem 0.4rem;">
+                  <span style="font-size: 0.65rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">{{ card.name }}</span>
+                  <span class="energy-badge" [ngClass]="'energy-' + (card.types[0]?.toLowerCase() || 'normal')" style="width: 10px; height: 10px; font-size: 0.45rem;"></span>
+                </div>
+                <div class="tcg-image-container-v" style="min-height: 70px;">
+                  <img [src]="card.image" style="height: 50px;">
+                </div>
+                <div class="tcg-content" style="padding: 0.2rem; text-align: center; background: rgba(0,0,0,0.55); z-index: 10;">
+                  <div style="font-size: 0.65rem; color: #fff; font-weight: bold; white-space: nowrap;">
+                    HP: {{ card.hp }}
+                    <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.55rem; font-weight: bold; margin-left: 2px;">Nv.{{ card.level }}</span>
                   </div>
-                  <div style="font-size: 0.6rem; color: #aaa; margin-top: 2px;">HP: {{ card.hp }}</div>
                 </div>
               </div>
               <div class="tcg-card-back"></div>
@@ -221,7 +260,9 @@ export class GameBoardComponent implements OnInit, OnDestroy {
   playerEffectiveMsg = '';
   playerFainting = false;
   playerJustSummoned = false;
-  attackProjectile: 'player-atk' | 'enemy-atk' | null = null;
+  attackProjectile = false;
+  attackProjectileType = 'normal-proj';
+  attackProjectileDirection: 'player-atk' | 'enemy-atk' = 'player-atk';
   showTurnBanner = false;
 
   // Rotación Dinámica de Arenas (Estadios de batalla fotorrealistas optimizados para carga rápida)
@@ -366,29 +407,46 @@ export class GameBoardComponent implements OnInit, OnDestroy {
       .on('broadcast', { event: 'ATTACK' }, (payload: any) => {
         const dmg = payload.payload.damage;
         const mult = payload.payload.multiplier;
+        const attackName = payload.payload.attackName || 'Ataque';
         
-        this.triggerShake();
-        this.playerFlash = true;
-        this.playerDamage = `-${dmg}`;
-        if (mult === 2) this.playerEffectiveMsg = "Súper Efectivo";
-        else if (mult === 0.5) this.playerEffectiveMsg = "Poco Efectivo";
-
-        setTimeout(() => { this.playerFlash = false; this.playerDamage = ''; this.playerEffectiveMsg = ''; }, 1000);
-
-        if (this.playerActive) {
-          this.playerActive.hp = payload.payload.newHp;
-          if (this.playerActive.hp <= 0) {
-            this.playerFainting = true;
-            this.cdr.detectChanges();
-            setTimeout(async () => {
-              this.playerFainting = false;
-              this.playerActive = null;
-              this.cdr.detectChanges();
-              await this.checkWinCondition();
-            }, 1500);
-          }
-        }
+        // Lanzar proyectil del oponente en su dirección
+        const projType = this.opponentActive ? this.getProjectileType(this.opponentActive) : 'normal-proj';
+        this.attackProjectileType = projType;
+        this.attackProjectileDirection = 'enemy-atk';
+        this.attackProjectile = true;
         this.cdr.detectChanges();
+        this.playSynthSound('attack');
+
+        setTimeout(() => {
+          this.attackProjectile = false;
+          this.playSynthSound('hit');
+
+          this.triggerShake();
+          this.playerFlash = true;
+          this.playerDamage = `-${dmg}`;
+          
+          this.playerEffectiveMsg = `¡El rival usó ${attackName}!`;
+          if (mult === 2) this.playerEffectiveMsg += " (Súper Efectivo)";
+          else if (mult === 0.5) this.playerEffectiveMsg += " (Poco Efectivo)";
+
+          setTimeout(() => { this.playerFlash = false; this.playerDamage = ''; this.playerEffectiveMsg = ''; }, 1800);
+
+          if (this.playerActive) {
+            this.playerActive.hp = payload.payload.newHp;
+            if (this.playerActive.hp <= 0) {
+              this.playSynthSound('faint');
+              this.playerFainting = true;
+              this.cdr.detectChanges();
+              setTimeout(async () => {
+                this.playerFainting = false;
+                this.playerActive = null;
+                this.cdr.detectChanges();
+                await this.checkWinCondition();
+              }, 1500);
+            }
+          }
+          this.cdr.detectChanges();
+        }, 400);
       })
       .on('broadcast', { event: 'END_TURN' }, (payload: any) => {
         this.turn = payload.payload.turn + 1;
@@ -449,7 +507,26 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     } else {
       this.playerBench = await this.pokeapi.getRandomPokemonCards(5);
     }
-    this.opponentBench = await this.pokeapi.getRandomPokemonCards(5);
+    
+    // Obtener cartas del oponente y aplicar dificultad
+    const rawOpponent = await this.pokeapi.getRandomPokemonCards(5);
+    this.opponentBench = rawOpponent.map(card => {
+      const cloned = JSON.parse(JSON.stringify(card));
+      if (this.difficulty === 'facil') {
+        cloned.hp = Math.floor(cloned.hp * 0.65);
+        cloned.attack = Math.floor(cloned.attack * 0.65);
+        cloned.defense = Math.floor(cloned.defense * 0.65);
+        cloned.level = 1;
+      } else if (this.difficulty === 'dificil') {
+        cloned.hp = Math.floor(cloned.hp * 1.35);
+        cloned.attack = Math.floor(cloned.attack * 1.35);
+        cloned.defense = Math.floor(cloned.defense * 1.35);
+        cloned.level = 5;
+      } else {
+        cloned.level = 2;
+      }
+      return cloned;
+    });
     
     this.opponentActive = this.opponentBench.shift() || null;
     if (this.opponentActive) this.opponentActiveMaxHP = this.opponentActive.hp;
@@ -470,7 +547,6 @@ export class GameBoardComponent implements OnInit, OnDestroy {
 
   setActivePokemon(index: number) {
     if (this.playerActive !== null) return;
-    if (this.activeTurn !== 'player' && this.isOnline) return;
     
     this.playerActive = this.playerBench[index];
     this.playerActiveMaxHP = this.playerActive.hp;
@@ -532,34 +608,89 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     setTimeout(() => { this.shaking = false; }, 510);
   }
 
-  async attackOpponent() {
+  getCardAttacks(card: PokemonCard) {
+    if (!card) return [];
+    const type = card.types[0]?.toLowerCase() || 'normal';
+    let atk1 = { name: 'Golpe Cuerpo', damage: Math.round(card.attack * 0.65) };
+    let atk2 = { name: card.specialAbility || 'Fuerza Bruta', damage: card.attack };
+
+    if (type === 'fire') {
+      atk1 = { name: 'Pistola Ígnea', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Llamarada', damage: card.attack };
+    } else if (type === 'water') {
+      atk1 = { name: 'Pistola Agua', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Hidrobomba', damage: card.attack };
+    } else if (type === 'grass') {
+      atk1 = { name: 'Hoja Afilada', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Rayo Solar', damage: card.attack };
+    } else if (type === 'electric') {
+      atk1 = { name: 'Impactrueno', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Trueno', damage: card.attack };
+    } else if (type === 'psychic') {
+      atk1 = { name: 'Psicorrayo', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Psíquico', damage: card.attack };
+    } else if (type === 'poison') {
+      atk1 = { name: 'Picotazo Veneno', damage: Math.round(card.attack * 0.65) };
+      atk2 = { name: 'Bomba Lodo', damage: card.attack };
+    }
+    
+    return [atk1, atk2];
+  }
+
+  getProjectileType(card: PokemonCard): string {
+    if (!card) return 'normal-proj';
+    const type = card.types[0]?.toLowerCase() || 'normal';
+    if (type === 'electric') return 'electric-proj';
+    if (['fire', 'dragon'].includes(type)) return 'fire-proj';
+    if (['water', 'ice'].includes(type)) return 'water-proj';
+    if (['grass', 'bug'].includes(type)) return 'grass-proj';
+    if (['psychic', 'ghost', 'fairy'].includes(type)) return 'psychic-proj';
+    return 'normal-proj';
+  }
+
+  async attackOpponent(attackNum: number = 1) {
     if (this.activeTurn !== 'player' || !this.playerActive || !this.opponentActive || this.actionBlocked || this.isAttacking) return;
 
     this.isAttacking = true;
     this.cdr.detectChanges();
 
-    // Reproducir sonido de lanzamiento de ataque y activar proyectil
-    this.playSynthSound('attack');
-    this.attackProjectile = 'player-atk';
+    const attacks = this.getCardAttacks(this.playerActive);
+    const chosenAttack = attacks[attackNum - 1];
+
+    // Lanzar proyectil visual correspondiente
+    const projType = this.getProjectileType(this.playerActive);
+    this.attackProjectileType = projType;
+    this.attackProjectileDirection = 'player-atk';
+    this.attackProjectile = true;
     this.cdr.detectChanges();
+
+    this.playSynthSound('attack');
 
     // Esperar 400ms a que el proyectil viaje
     await new Promise(resolve => setTimeout(resolve, 400));
 
-    // Desactivar proyectil al impactar y reproducir sonido de golpe
-    this.attackProjectile = null;
+    // Desactivar proyectil al impactar
+    this.attackProjectile = false;
     this.playSynthSound('hit');
 
-    // Aplicar Daño
-    const { dmg, multiplier } = this.calculateDamage(this.playerActive, this.opponentActive);
+    // Calcular daño base
+    let { dmg, multiplier } = this.calculateDamage(this.playerActive, this.opponentActive);
     
+    // El Ataque 1 (Básico) tiene daño reducido
+    if (attackNum === 1) {
+      dmg = Math.floor(dmg * 0.65);
+    }
+
     this.triggerShake();
     this.opponentFlash = true;
     this.opponentDamage = `-${dmg}`;
-    if (multiplier === 2) this.opponentEffectiveMsg = "Súper Efectivo";
-    else if (multiplier === 0.5) this.opponentEffectiveMsg = "Poco Efectivo";
     
-    setTimeout(() => { this.opponentFlash = false; this.opponentDamage = ''; this.opponentEffectiveMsg = ''; }, 1000);
+    // Mensaje descriptivo del ataque usado
+    this.opponentEffectiveMsg = `¡${this.playerActive.name} usó ${chosenAttack.name}!`;
+    if (multiplier === 2) this.opponentEffectiveMsg += " (Súper Efectivo)";
+    else if (multiplier === 0.5) this.opponentEffectiveMsg += " (Poco Efectivo)";
+    
+    setTimeout(() => { this.opponentFlash = false; this.opponentDamage = ''; this.opponentEffectiveMsg = ''; }, 1800);
 
     this.opponentActive.hp -= dmg;
     this.cdr.detectChanges();
@@ -568,7 +699,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
       this.channel.send({
         type: 'broadcast',
         event: 'ATTACK',
-        payload: { damage: dmg, multiplier, newHp: this.opponentActive.hp }
+        payload: { damage: dmg, multiplier, newHp: this.opponentActive.hp, attackName: chosenAttack.name }
       });
     }
 
@@ -614,7 +745,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     this.turn++;
     this.triggerTurnBanner('enemy');
     
-    // IA Flow ultrarrápido
+    // IA Flow con dificultades adaptadas
     setTimeout(async () => {
       if (!this.opponentActive && this.opponentBench.length > 0) {
         this.opponentActive = this.opponentBench.shift() || null;
@@ -624,27 +755,76 @@ export class GameBoardComponent implements OnInit, OnDestroy {
       }
 
       if (this.opponentActive && this.playerActive) {
-        // IA Lanza Ataque
-        this.playSynthSound('attack');
-        this.attackProjectile = 'enemy-atk';
+        // La IA selecciona ataque según dificultad (Difícil usa más ataque especial)
+        let attackNum: 1 | 2 = 1;
+        const rand = Math.random();
+        if (this.difficulty === 'dificil') {
+          attackNum = rand < 0.7 ? 2 : 1;
+        } else if (this.difficulty === 'facil') {
+          attackNum = rand < 0.2 ? 2 : 1;
+        } else {
+          attackNum = rand < 0.5 ? 2 : 1;
+        }
+
+        // Penalización Dificultad Fácil: 30% de probabilidad de fallar turno
+        if (this.difficulty === 'facil' && Math.random() < 0.3) {
+          this.playerDamage = '¡Fallo!';
+          this.playerEffectiveMsg = `¡${this.opponentActive.name} se distrajo y no atacó!`;
+          this.playSynthSound('faint');
+          
+          setTimeout(() => {
+            this.playerDamage = '';
+            this.playerEffectiveMsg = '';
+            this.triggerTurnBanner('player');
+          }, 1800);
+          return;
+        }
+
+        const attacks = this.getCardAttacks(this.opponentActive);
+        const chosenAttack = attacks[attackNum - 1];
+
+        // Lanzar proyectil de la IA
+        const projType = this.getProjectileType(this.opponentActive);
+        this.attackProjectileType = projType;
+        this.attackProjectileDirection = 'enemy-atk';
+        this.attackProjectile = true;
         this.cdr.detectChanges();
+
+        this.playSynthSound('attack');
 
         // Esperar 400ms a que el proyectil viaje
         await new Promise(resolve => setTimeout(resolve, 400));
 
         // Desactivar proyectil e impacto
-        this.attackProjectile = null;
+        this.attackProjectile = false;
         this.playSynthSound('hit');
 
-        const { dmg, multiplier } = this.calculateDamage(this.opponentActive, this.playerActive);
-        
+        let { dmg, multiplier } = this.calculateDamage(this.opponentActive, this.playerActive);
+        if (attackNum === 1) {
+          dmg = Math.floor(dmg * 0.65);
+        }
+
+        // Bonificación Dificultad Difícil: 25% de golpe crítico
+        let isCritical = false;
+        if (this.difficulty === 'dificil' && Math.random() < 0.25) {
+          dmg = Math.floor(dmg * 1.5);
+          isCritical = true;
+        }
+
         this.triggerShake();
         this.playerFlash = true;
         this.playerDamage = `-${dmg}`;
-        if (multiplier === 2) this.playerEffectiveMsg = "Súper Efectivo";
-        else if (multiplier === 0.5) this.playerEffectiveMsg = "Poco Efectivo";
         
-        setTimeout(() => { this.playerFlash = false; this.playerDamage = ''; this.playerEffectiveMsg = ''; }, 1000);
+        this.playerEffectiveMsg = `¡${this.opponentActive.name} usó ${chosenAttack.name}!`;
+        if (isCritical) {
+          this.playerEffectiveMsg = `¡CRÍTICO! ${this.opponentActive.name} usó ${chosenAttack.name}`;
+        } else if (multiplier === 2) {
+          this.playerEffectiveMsg += " (Súper Efectivo)";
+        } else if (multiplier === 0.5) {
+          this.playerEffectiveMsg += " (Poco Efectivo)";
+        }
+        
+        setTimeout(() => { this.playerFlash = false; this.playerDamage = ''; this.playerEffectiveMsg = ''; }, 1800);
 
         this.playerActive.hp -= dmg;
         this.cdr.detectChanges();
@@ -666,7 +846,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
         } else {
           setTimeout(() => {
             this.triggerTurnBanner('player');
-          }, 1200);
+          }, 1500);
         }
       } else {
         this.triggerTurnBanner('player');

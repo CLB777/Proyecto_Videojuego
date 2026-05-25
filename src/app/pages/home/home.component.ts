@@ -32,7 +32,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           <p style="color: #aaa; font-size: 1.2rem; max-width: 600px; margin: 0 auto;">TCG Pocket Edition: Elige tu próximo movimiento y prepárate para la batalla.</p>
         </div>
 
-        <div style="width: 100%; display: grid; grid-template-columns: 1fr 2fr; gap: 4rem;">
+        <div class="home-grid">
           
           <!-- Panel Izquierdo: Menú Principal (Modos de Juego) -->
           <div [class.tutorial-highlight]="tutorialStep === 2" style="display: flex; flex-direction: column; gap: 1.5rem; transition: all 0.3s;">
@@ -83,7 +83,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           <div style="display: flex; flex-direction: column; gap: 2rem;">
             
             <!-- Hub Superior: Historial, Colección y Mazo -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+            <div class="hub-grid">
               <button class="skewed-btn" [class.tutorial-highlight]="tutorialStep === 6" (click)="goTo('/history')" style="--border-color: var(--neon-purple); --shadow-color: 176, 38, 255; --bg-hover: rgba(176, 38, 255, 0.15); text-align: center; background: rgba(30, 10, 50, 0.55); height: 110px;">
                 <div class="skewed-btn-inner" style="align-items: center; justify-content: center; height: 100%;">
                   <h2 style="font-size: 1.3rem; color: var(--neon-purple); margin-bottom: 0.2rem;">Historial</h2>
@@ -329,6 +329,7 @@ export class HomeComponent implements OnInit {
   private isBrowser = isPlatformBrowser(this.platformId);
 
   async ngOnInit() {
+    if (!this.isBrowser) return;
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -343,6 +344,7 @@ export class HomeComponent implements OnInit {
         if (this.isBrowser) {
           const tutorialSeen = localStorage.getItem('tcg_tutorial_seen_' + userAuth.user.id);
           if (!tutorialSeen) {
+            localStorage.setItem('tcg_tutorial_seen_' + userAuth.user.id, 'true');
             this.startTutorial();
           }
         }
