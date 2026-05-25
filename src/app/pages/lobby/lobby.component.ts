@@ -140,6 +140,14 @@ export class LobbyComponent implements OnInit {
   async joinGame(matchId: string) {
     this.joining = true;
     try {
+      const { data: userAuth } = await this.supabase.auth.getUser();
+      if (userAuth.user) {
+        await this.supabase.client.from('usuarios').upsert({
+          id: this.myId,
+          username: userAuth.user.email?.split('@')[0] || 'Entrenador'
+        });
+      }
+
       const { error } = await this.supabase.client
         .from('partidas')
         .update({

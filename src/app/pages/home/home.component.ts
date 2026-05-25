@@ -19,10 +19,10 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
         <!-- Cabecera y Bienvenida con controles de Guía/Tutorial -->
         <div style="text-align: center; margin-bottom: 4rem; width: 100%;">
           <div style="display: flex; justify-content: center; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
-            <button class="btn btn-cyan" style="font-size: 0.9rem; padding: 0.5rem 1.5rem;" (click)="showGuide = true">
+            <button class="btn btn-cyan" style="font-size: 0.9rem; padding: 0.5rem 1.5rem;" (click)="showGuide = true; playClickSound()">
               Guía de Juego
             </button>
-            <button class="btn btn-pink" style="font-size: 0.9rem; padding: 0.5rem 1.5rem;" (click)="startTutorial()">
+            <button class="btn btn-pink" style="font-size: 0.9rem; padding: 0.5rem 1.5rem;" (click)="startTutorial(); playClickSound()">
               Iniciar Tutorial
             </button>
           </div>
@@ -192,8 +192,8 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; margin-top: 0.3rem;">
-              <button class="btn" style="border-color: #555; color: #aaa; font-size: 0.8rem; padding: 0.3rem 1rem;" (click)="skipTutorial()">Omitir</button>
-              <button class="btn btn-cyan" style="font-size: 0.85rem; padding: 0.4rem 1.5rem;" (click)="nextTutorialStep()">
+              <button class="btn" style="border-color: #555; color: #aaa; font-size: 0.8rem; padding: 0.3rem 1rem;" (click)="skipTutorial(); playClickSound()">Omitir</button>
+              <button class="btn btn-cyan" style="font-size: 0.85rem; padding: 0.4rem 1.5rem;" (click)="nextTutorialStep(); playClickSound()">
                 {{ tutorialStep === 6 ? '¡Entendido!' : 'Siguiente' }}
               </button>
             </div>
@@ -207,7 +207,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
         <div class="glass-panel" style="width: 100%; max-width: 800px; max-height: 85vh; overflow-y: auto; border: 2px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0,255,255,0.4); padding: 3rem; background: rgba(10, 15, 30, 0.95); position: relative;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 2px solid var(--neon-cyan); padding-bottom: 1rem;">
             <h2 class="title glow-text-cyan" style="font-size: 2.2rem; margin: 0; font-family: inherit; letter-spacing: 2px;">Manual del Entrenador</h2>
-            <button class="btn" style="border-color: var(--neon-pink); color: var(--neon-pink); padding: 0.4rem 1rem; font-size: 0.9rem;" (click)="closeGuide()">Cerrar Manual</button>
+            <button class="btn" style="border-color: var(--neon-pink); color: var(--neon-pink); padding: 0.4rem 1rem; font-size: 0.9rem;" (click)="closeGuide(); playClickSound()">Cerrar Manual</button>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 2rem; font-size: 1rem; color: #ccc; line-height: 1.6;">
@@ -251,7 +251,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           </div>
 
           <div style="margin-top: 3rem; text-align: center;">
-            <button class="btn btn-cyan" style="font-size: 1.2rem; padding: 0.8rem 3rem;" (click)="closeGuide()">Entendido, Entrenador</button>
+            <button class="btn btn-cyan" style="font-size: 1.2rem; padding: 0.8rem 3rem;" (click)="closeGuide(); playClickSound()">Entendido, Entrenador</button>
           </div>
         </div>
       </div>
@@ -321,6 +321,43 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  audioCtx: AudioContext | null = null;
+
+  getAudioContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    if (!this.audioCtx) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        this.audioCtx = new AudioContextClass();
+      }
+    }
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+    return this.audioCtx;
+  }
+
+  playClickSound() {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch(e) {
+      console.warn(e);
+    }
+  }
+
   private supabase = inject(SupabaseService);
   private inventoryService = inject(InventoryService);
   private router = inject(Router);
@@ -336,6 +373,12 @@ export class HomeComponent implements OnInit {
     try {
       const { data: userAuth } = await this.supabase.auth.getUser();
       if (userAuth.user) {
+        // Asegurar que el usuario existe en public.usuarios para los joins de partidas
+        await this.supabase.client.from('usuarios').upsert({
+          id: userAuth.user.id,
+          username: userAuth.user.email?.split('@')[0] || 'Entrenador'
+        });
+
         const { data: userData } = await this.supabase.client.from('usuarios').select('username').eq('id', userAuth.user.id).single();
         if (userData && userData.username) {
           this.username = userData.username;
@@ -397,7 +440,10 @@ export class HomeComponent implements OnInit {
   }
 
   goTo(path: string) {
-    this.router.navigateByUrl(path);
+    this.playClickSound();
+    setTimeout(() => {
+      this.router.navigateByUrl(path);
+    }, 150);
   }
 
   async logout() {

@@ -272,11 +272,12 @@ export class GameBoardComponent implements OnInit, OnDestroy {
 
   // Rotación Dinámica de Arenas (Estadios de batalla fotorrealistas optimizados para carga rápida)
   arenaBackgrounds = [
-    'url("https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=60")', // Hierba (Bosque)
-    'url("https://images.unsplash.com/photo-1518098268026-4e66f1a9c869?auto=format&fit=crop&w=1200&q=60")', // Fuego (Volcán)
-    'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=60")', // Agua (Costa)
-    'url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=60")', // Psíquico (Nebulosa)
-    'url("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=60")'  // Eléctrico (Gimnasio Neon)
+    'url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=60")', // Bosque (Planta)
+    'url("https://images.unsplash.com/photo-1461696114087-3972713f9fc5?auto=format&fit=crop&w=1200&q=60")', // Volcán (Fuego)
+    'url("https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=60")', // Costa (Agua)
+    'url("https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=1200&q=60")', // Espacio (Psíquico)
+    'url("https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=60")', // Cyber Neón (Eléctrico)
+    'url("https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=60")'  // Desierto (Tierra/Normal)
   ];
   currentArena = 'radial-gradient(circle at center, #0f0f15 0%, #05050a 100%)';
 
@@ -334,6 +335,12 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     const { data: userAuth } = await this.supabase.auth.getUser();
     let deck: any[] = [];
     if (userAuth.user) {
+      // Asegurar que el usuario existe en 'usuarios' para joins
+      await this.supabase.client.from('usuarios').upsert({
+        id: userAuth.user.id,
+        username: userAuth.user.email?.split('@')[0] || 'Entrenador'
+      });
+
       const { data: userData } = await this.supabase.client.from('usuarios').select('username').eq('id', userAuth.user.id).single();
       if (userData && userData.username) {
         this.username = userData.username;
