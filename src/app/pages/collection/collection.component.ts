@@ -29,28 +29,51 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           <a routerLink="/gacha" class="btn btn-cyan" style="margin-top: 1rem;">Abre sobres en la tienda</a>
         </div>
 
-        <div *ngIf="!loading && cards.length > 0" class="grid-cards">
-          <div *ngFor="let card of cards" class="tcg-card" style="background: rgba(0,0,0,0.6);">
+        <div *ngIf="!loading && cards.length > 0" class="grid-cards" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; justify-items: center;">
+          <div *ngFor="let card of cards" class="tcg-card card-compact" style="background: rgba(0,0,0,0.6);">
             <div class="tcg-flip-inner">
-              <div class="tcg-card-front">
+              <div class="tcg-card-front" [ngClass]="'type-' + (card.types[0]?.toLowerCase() || 'normal')">
                 <div class="tcg-rarity" [ngClass]="card.rarity.replace(' ', '')">{{ card.rarity }}</div>
-                <div class="tcg-image-container">
+                
+                <!-- Header: Nombre + HP -->
+                <div class="tcg-header-v">
+                  <div style="display: flex; align-items: center; font-weight: 900; color: #fff;">
+                    <span class="tcg-badge-v" style="font-size: 0.5rem; padding: 1px 3px;">V</span>
+                    <span style="max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ card.name }}</span>
+                  </div>
+                  <div style="color: #fff; display: flex; align-items: center; gap: 2px;">
+                    <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.55rem; font-weight: bold;">N.{{ card.level }}</span>
+                    <span class="energy-badge" [ngClass]="'energy-' + (card.types[0]?.toLowerCase() || 'normal')"></span>
+                  </div>
+                </div>
+
+                <!-- Imagen -->
+                <div class="tcg-image-container-v">
                   <img [src]="card.image" [alt]="card.name">
                 </div>
-                <div class="tcg-content">
-                  <div class="tcg-name">
-                    {{ card.name }}
-                    <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.85rem; font-weight: bold; margin-left: 0.5rem;">Nv. {{ card.level }}</span>
+
+                <!-- Stats Panel (Compact) -->
+                <div class="tcg-attack-panel-v" style="background: rgba(10, 10, 15, 0.9);">
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-pink); font-weight: 800;">ATK</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.attack }}</span>
                   </div>
-                  <div class="tcg-stats">
-                    <span class="tcg-stat-atk">ATK: {{ card.attack }}</span>
-                    <span class="tcg-stat-def">DEF: {{ card.defense }}</span>
-                    <span class="tcg-stat-hp">HP: {{ card.hp }}</span>
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-cyan); font-weight: 800;">DEF</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.defense }}</span>
                   </div>
-                  <p style="margin-top: 0.5rem; font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">
-                    Habilidad: <span style="color: #fff;">{{ card.specialAbility }}</span>
-                  </p>
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-green); font-weight: 800;">HP</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.hp }}</span>
+                  </div>
                 </div>
+
               </div>
               <div class="tcg-card-back"></div>
             </div>

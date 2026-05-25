@@ -32,15 +32,26 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           </div>
           
           <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem;">
-            <div *ngFor="let card of selectedCards" (click)="toggleSelection(card)" class="tcg-card" style="min-width: 120px; border-color: var(--neon-pink); background: rgba(0,0,0,0.6);">
+            <div *ngFor="let card of selectedCards" (click)="toggleSelection(card)" class="tcg-card card-compact" style="border-color: var(--neon-pink); background: rgba(0,0,0,0.6); flex-shrink: 0;">
               <div class="tcg-flip-inner">
-                <div class="tcg-card-front">
-                  <div class="tcg-image-container" style="min-height: 80px;">
-                    <img [src]="card.image" style="height: 60px;">
+                <div class="tcg-card-front" [ngClass]="'type-' + (card.types[0]?.toLowerCase() || 'normal')">
+                  <!-- Header: Nombre + HP -->
+                  <div class="tcg-header-v">
+                    <div style="display: flex; align-items: center; font-weight: 900; color: #fff;">
+                      <span class="tcg-badge-v" style="font-size: 0.5rem; padding: 1px 3px;">V</span>
+                      <span style="max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ card.name }}</span>
+                    </div>
+                    <span class="energy-badge" [ngClass]="'energy-' + (card.types[0]?.toLowerCase() || 'normal')"></span>
                   </div>
-                  <div class="tcg-content" style="padding: 0.5rem; text-align: center;">
-                    <div style="font-size: 0.7rem; font-weight: bold;">
-                      {{ card.name }} <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.65rem;">Nv. {{ card.level }}</span>
+                  <!-- Imagen -->
+                  <div class="tcg-image-container-v">
+                    <img [src]="card.image" style="height: 50px;">
+                  </div>
+                  <!-- Stats Panel (Compact) -->
+                  <div class="tcg-attack-panel-v" style="background: rgba(10, 10, 15, 0.9);">
+                    <div class="tcg-attack-row" style="padding: 0.1rem 0.25rem; font-size: 0.55rem; justify-content: space-around;">
+                      <span style="color: var(--neon-pink); font-weight: 800;">A:{{ card.attack }}</span>
+                      <span style="color: var(--neon-cyan); font-weight: 800;">D:{{ card.defense }}</span>
                     </div>
                   </div>
                 </div>
@@ -57,21 +68,48 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
           <h2 class="glow-text-cyan" style="text-transform: uppercase; letter-spacing: 2px;">Cargando inventario de cartas...</h2>
         </div>
 
-        <div *ngIf="!loading" class="grid-cards" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));">
-          <div *ngFor="let card of availableCards" (click)="toggleSelection(card)" class="tcg-card" [class.selected]="isSelected(card)" style="background: rgba(0,0,0,0.6);">
+        <div *ngIf="!loading" class="grid-cards" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; justify-items: center;">
+          <div *ngFor="let card of availableCards" (click)="toggleSelection(card)" class="tcg-card card-compact" [class.selected]="isSelected(card)" style="background: rgba(0,0,0,0.6);">
             <div class="tcg-flip-inner">
-              <div class="tcg-card-front">
-                <div class="tcg-rarity" [ngClass]="card.rarity.replace(' ', '')" style="font-size: 0.5rem; padding: 1px 4px;">{{ card.rarity }}</div>
-                <div class="tcg-image-container" style="min-height: 100px;">
-                  <img [src]="card.image" style="height: 80px;">
-                </div>
-                <div class="tcg-content" style="padding: 0.5rem; text-align: center;">
-                  <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    {{ card.name }} <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.75rem;">Nv. {{ card.level }}</span>
+              <div class="tcg-card-front" [ngClass]="'type-' + (card.types[0]?.toLowerCase() || 'normal')">
+                <div class="tcg-rarity" [ngClass]="card.rarity.replace(' ', '')" style="font-size: 0.45rem; padding: 1px 3px; top: 4px; right: 4px;">{{ card.rarity }}</div>
+                
+                <!-- Header: Nombre + HP -->
+                <div class="tcg-header-v">
+                  <div style="display: flex; align-items: center; font-weight: 900; color: #fff;">
+                    <span class="tcg-badge-v" style="font-size: 0.5rem; padding: 1px 3px;">V</span>
+                    <span style="max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ card.name }}</span>
                   </div>
-                  <div class="tcg-stats" style="font-size: 0.65rem; flex-direction: row; justify-content: space-around; gap: 2px;">
-                    <span class="tcg-stat-atk">ATK: {{ card.attack }}</span>
-                    <span class="tcg-stat-def">DEF: {{ card.defense }}</span>
+                  <div style="color: #fff; display: flex; align-items: center; gap: 2px;">
+                    <span *ngIf="card.level && card.level > 1" style="color: var(--neon-pink); font-size: 0.55rem; font-weight: bold;">N.{{ card.level }}</span>
+                    <span class="energy-badge" [ngClass]="'energy-' + (card.types[0]?.toLowerCase() || 'normal')"></span>
+                  </div>
+                </div>
+
+                <!-- Imagen -->
+                <div class="tcg-image-container-v">
+                  <img [src]="card.image" [alt]="card.name">
+                </div>
+
+                <!-- Stats Panel (Compact) -->
+                <div class="tcg-attack-panel-v" style="background: rgba(10, 10, 15, 0.9);">
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-pink); font-weight: 800;">ATK</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.attack }}</span>
+                  </div>
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-cyan); font-weight: 800;">DEF</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.defense }}</span>
+                  </div>
+                  <div class="tcg-attack-row">
+                    <div class="tcg-attack-info">
+                      <span style="color: var(--neon-green); font-weight: 800;">HP</span>
+                    </div>
+                    <span style="font-weight: 900; color: #fff;">{{ card.hp }}</span>
                   </div>
                 </div>
               </div>

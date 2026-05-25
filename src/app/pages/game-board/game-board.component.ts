@@ -85,7 +85,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
             <div *ngIf="opponentDamage" class="floating-damage">{{ opponentDamage }}</div>
             <div *ngIf="opponentEffectiveMsg" style="position: absolute; top: -30px; color: var(--neon-pink); font-weight: 900; font-size: 1.5rem; text-shadow: 0 0 10px #000; animation: summonCard 0.3s forwards; z-index: 60;">{{ opponentEffectiveMsg }}</div>
             
-            <div class="tcg-card combat-card-wrapper" [class.is-hidden]="turn === 1 && activeTurn === 'player' && !playerActive" [class.flash-red]="opponentFlash" [class.faint-animation]="opponentFainting">
+            <div class="tcg-card combat-card-wrapper" [class.is-hidden]="turn === 1 && (playerActive === null || opponentActive === null)" [class.flash-red]="opponentFlash" [class.faint-animation]="opponentFainting">
               <div class="tcg-flip-inner">
                 <div class="tcg-card-front" [ngClass]="'type-' + (opponentActive.types[0]?.toLowerCase() || 'normal')" *ngIf="opponentActive">
                   <!-- Header: Nombre + HP -->
@@ -219,6 +219,11 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
   `
 })
 export class GameBoardComponent implements OnInit, OnDestroy {
+  // Audio Context and Opponent Info
+  audioCtx: AudioContext | null = null;
+  opponentId = '';
+  opponentUsername = 'Entrenador Online';
+
   // Estado Jugador
   playerBench: PokemonCard[] = [];
   playerActive: PokemonCard | null = null;
@@ -273,7 +278,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     'url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=60")', // Psíquico (Nebulosa)
     'url("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=60")'  // Eléctrico (Gimnasio Neon)
   ];
-  currentArena = '';
+  currentArena = 'radial-gradient(circle at center, #0f0f15 0%, #05050a 100%)';
 
   private pokeapi = inject(PokeapiService);
   private sqlite = inject(SqliteService);
@@ -298,12 +303,14 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     chosen = availableArenas[Math.floor(Math.random() * availableArenas.length)];
     localStorage.setItem('tcg_last_arena', chosen);
 
-    // Pre-cargar la imagen en memoria para evitar demoras
+    // Pre-cargar la imagen en memoria para evitar demoras visuales
     const cleanUrl = chosen.replace(/url\(['"]?/, '').replace(/['"]?\)/, '');
     const img = new Image();
+    img.onload = () => {
+      this.currentArena = chosen;
+      this.cdr.detectChanges();
+    };
     img.src = cleanUrl;
-    
-    this.currentArena = chosen;
 
     this.route.queryParams.subscribe(async params => {
       if (params['online']) {
@@ -341,6 +348,26 @@ export class GameBoardComponent implements OnInit, OnDestroy {
       if (!error && data && data.length > 0 && data[0].cartas) {
         deck = data[0].cartas;
       }
+
+      // Intentar cargar la info del oponente de la base de datos de manera inicial
+      try {
+        const { data: matchData } = await this.supabase.client
+          .from('partidas')
+          .select('*, jugador1:usuarios!partidas_id_jugador1_fkey(username), jugador2:usuarios!partidas_id_jugador2_fkey(username)')
+          .eq('id', this.matchId)
+          .single();
+        if (matchData) {
+          if (this.role === 'host' && matchData.id_jugador2) {
+            this.opponentId = matchData.id_jugador2;
+            if (matchData.jugador2) this.opponentUsername = matchData.jugador2.username;
+          } else if (this.role === 'guest' && matchData.id_jugador1) {
+            this.opponentId = matchData.id_jugador1;
+            if (matchData.jugador1) this.opponentUsername = matchData.jugador1.username;
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching match participants:", err);
+      }
     }
     
     if (deck && deck.length > 0) {
@@ -371,22 +398,31 @@ export class GameBoardComponent implements OnInit, OnDestroy {
 
     this.channel
       .on('broadcast', { event: 'JOIN' }, (payload: any) => {
+        if (payload.payload) {
+          if (payload.payload.username) this.opponentUsername = payload.payload.username;
+          if (payload.payload.id) this.opponentId = payload.payload.id;
+        }
         if (this.role === 'host') {
           this.channel.send({
             type: 'broadcast',
             event: 'DECK',
-            payload: { deck: this.playerBench, username: this.username }
+            payload: { deck: this.playerBench, username: this.username, id: userAuth?.user?.id }
           });
         }
+        this.cdr.detectChanges();
       })
       .on('broadcast', { event: 'DECK' }, (payload: any) => {
         this.opponentBench = payload.payload.deck;
+        if (payload.payload) {
+          if (payload.payload.username) this.opponentUsername = payload.payload.username;
+          if (payload.payload.id) this.opponentId = payload.payload.id;
+        }
         
         if (this.role === 'guest') {
           this.channel.send({
             type: 'broadcast',
             event: 'DECK',
-            payload: { deck: this.playerBench, username: this.username }
+            payload: { deck: this.playerBench, username: this.username, id: userAuth?.user?.id }
           });
         }
         
@@ -465,7 +501,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
           this.channel.send({
             type: 'broadcast',
             event: 'JOIN',
-            payload: { username: this.username }
+            payload: { username: this.username, id: userAuth?.user?.id }
           });
         }
       });
@@ -857,6 +893,7 @@ export class GameBoardComponent implements OnInit, OnDestroy {
   async abandonGame() {
     this.gameOver = true;
     this.winner = this.isOnline ? 'EL RIVAL (Por Abandono)' : 'LA IA (Por Abandono)';
+    this.playSynthSound('defeat');
     this.saveMatchHistory('lose');
     
     if (this.isOnline) {
@@ -866,10 +903,30 @@ export class GameBoardComponent implements OnInit, OnDestroy {
         payload: { winner: 'opponent' }
       });
       const { data: userAuth } = await this.supabase.auth.getUser();
-      await this.supabase.client.from('partidas').update({
-        estado: 'finalizada',
-        ganador: null // Indica que se finalizó por rendición
-      }).eq('id', this.matchId);
+      if (userAuth.user) {
+        let finalWinnerId: string | null = null;
+        if (this.opponentId) {
+          finalWinnerId = this.opponentId;
+        } else {
+          try {
+            const { data: matchData } = await this.supabase.client
+              .from('partidas')
+              .select('id_jugador1, id_jugador2')
+              .eq('id', this.matchId)
+              .single();
+            if (matchData) {
+              finalWinnerId = matchData.id_jugador1 === userAuth.user.id ? matchData.id_jugador2 : matchData.id_jugador1;
+            }
+          } catch (err) {
+            console.error("Error fetching opponent ID for surrender:", err);
+          }
+        }
+
+        await this.supabase.client.from('partidas').update({
+          estado: 'finalizada',
+          ganador: finalWinnerId
+        }).eq('id', this.matchId);
+      }
     }
     
     this.cdr.detectChanges();
@@ -887,9 +944,29 @@ export class GameBoardComponent implements OnInit, OnDestroy {
         const { data: userAuth } = await this.supabase.auth.getUser();
         if (userAuth.user) {
           const isWinner = this.winner === 'TÚ';
+          let finalWinnerId: string | null = null;
+          if (isWinner) {
+            finalWinnerId = userAuth.user.id;
+          } else if (this.opponentId) {
+            finalWinnerId = this.opponentId;
+          } else {
+            try {
+              const { data: matchData } = await this.supabase.client
+                .from('partidas')
+                .select('id_jugador1, id_jugador2')
+                .eq('id', this.matchId)
+                .single();
+              if (matchData) {
+                finalWinnerId = matchData.id_jugador1 === userAuth.user.id ? matchData.id_jugador2 : matchData.id_jugador1;
+              }
+            } catch (err) {
+              console.error("Error fetching opponent ID for win check:", err);
+            }
+          }
+
           await this.supabase.client.from('partidas').update({
             estado: 'finalizada',
-            ganador: isWinner ? userAuth.user.id : null
+            ganador: finalWinnerId
           }).eq('id', this.matchId);
         }
       }
@@ -905,18 +982,32 @@ export class GameBoardComponent implements OnInit, OnDestroy {
         } catch(e) {
           console.error("Error al asignar recompensas:", e);
         }
+      } else {
+        this.playSynthSound('defeat');
       }
 
       this.cdr.detectChanges();
     }
   }
 
-  playSynthSound(type: 'attack' | 'hit' | 'faint' | 'victory') {
-    if (typeof window === 'undefined') return;
-    try {
+  getAudioContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    if (!this.audioCtx) {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
+      if (AudioContextClass) {
+        this.audioCtx = new AudioContextClass();
+      }
+    }
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+    return this.audioCtx;
+  }
+
+  playSynthSound(type: 'attack' | 'hit' | 'faint' | 'victory' | 'defeat') {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+    try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
@@ -973,6 +1064,20 @@ export class GameBoardComponent implements OnInit, OnDestroy {
           g.gain.exponentialRampToValueAtTime(0.001, now + index * 0.12 + 0.4);
           o.start(now + index * 0.12);
           o.stop(now + index * 0.12 + 0.45);
+        });
+      } else if (type === 'defeat') {
+        const notes = [392.00, 349.23, 311.13, 246.94]; // Sad descending minor chord
+        notes.forEach((freq, index) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.type = 'sawtooth';
+          o.frequency.setValueAtTime(freq, now + index * 0.15);
+          g.gain.setValueAtTime(0.12, now + index * 0.15);
+          g.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.5);
+          o.start(now + index * 0.15);
+          o.stop(now + index * 0.15 + 0.55);
         });
       }
     } catch (e) {

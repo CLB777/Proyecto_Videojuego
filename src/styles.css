@@ -848,3 +848,68 @@ body {
     gap: 1rem !important;
   }
 }
+
+/* DESKTOP MENU GRIDS */
+.home-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+}
+
+/* COMPACT V-CARD STYLE */
+.card-compact {
+  width: 130px;
+  height: 180px;
+}
+
+.card-compact .tcg-image-container-v {
+  min-height: 60px !important;
+}
+
+.card-compact .tcg-image-container-v img {
+  height: 50px !important;
+}
+
+.card-compact .tcg-header-v {
+  padding: 0.2rem 0.35rem !important;
+}
+
+.card-compact .tcg-header-v div,
+.card-compact .tcg-header-v span {
+  font-size: 0.65rem !important;
+}
+
+.card-compact .tcg-attack-panel-v {
+  padding: 0.2rem !important;
+  gap: 0.15rem !important;
+}
+
+.card-compact .tcg-attack-row {
+  padding: 0.1rem 0.25rem !important;
+}
+
+.card-compact .tcg-attack-name, 
+.card-compact .tcg-attack-damage {
+  font-size: 0.55rem !important;
+}
+
+.card-compact .energy-badge {
+  width: 9px !important;
+  height: 9px !important;
+  font-size: 0.4rem !important;
+}
+
+.card-compact .tcg-rarity {
+  font-size: 0.45rem !important;
+  padding: 1px 3px !important;
+  top: 4px !important;
+  right: 4px !important;
+}
+

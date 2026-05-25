@@ -92,13 +92,13 @@ import { SupabaseService } from '../../core/services/supabase/supabase.service';
 
           <div *ngFor="let match of onlineHistory" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #333;">
             <div>
-              <div style="font-weight: bold; text-transform: uppercase;">Rival: Entrenador Online</div>
+              <div style="font-weight: bold; text-transform: uppercase;">Rival: {{ match.opponentName }}</div>
               <div style="font-size: 0.8rem; color: #aaa;">{{ match.timestamp | date:'short' }}</div>
             </div>
             <div style="font-size: 1.2rem; font-weight: 900;" [ngStyle]="{'color': match.result === 'win' ? 'var(--neon-cyan)' : 'var(--neon-red)'}">
               {{ match.result === 'win' ? 'VICTORIA' : 'DERROTA' }}
             </div>
-        </div>
+          </div>
 
       </div>
     </div>
@@ -130,15 +130,22 @@ export class HistoryComponent implements OnInit {
     try {
       const { data: userAuth } = await this.supabase.auth.getUser();
       if (userAuth.user) {
-        const { data } = await this.supabase.client.from('partidas').select('*').or(`id_jugador1.eq.${userAuth.user.id},id_jugador2.eq.${userAuth.user.id}`).neq('estado', 'esperando');
+        const { data } = await this.supabase.client
+          .from('partidas')
+          .select('*, jugador1:usuarios!partidas_id_jugador1_fkey(username), jugador2:usuarios!partidas_id_jugador2_fkey(username)')
+          .or(`id_jugador1.eq.${userAuth.user.id},id_jugador2.eq.${userAuth.user.id}`)
+          .neq('estado', 'esperando');
         
         if (data) {
-          // Simplificación: Asumimos que data contiene info de ganadores para mapear a onlineHistory
-          // Por ahora mockeamos si no hay estructura definida, o mapeamos:
-          this.onlineHistory = data.map((p: any) => ({
-            timestamp: p.creada_en,
-            result: p.id_ganador === userAuth.user.id ? 'win' : (p.id_ganador ? 'lose' : 'draw')
-          })).filter(p => p.result !== 'draw');
+          this.onlineHistory = data.map((p: any) => {
+            const isJugador1 = p.id_jugador1 === userAuth.user.id;
+            const opponentName = isJugador1 ? (p.jugador2?.username || 'Entrenador Online') : (p.jugador1?.username || 'Entrenador Online');
+            return {
+              timestamp: p.creada_en,
+              result: p.ganador === userAuth.user.id ? 'win' : (p.ganador ? 'lose' : 'draw'),
+              opponentName
+            };
+          }).filter(p => p.result !== 'draw');
 
           this.onlineHistory.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 

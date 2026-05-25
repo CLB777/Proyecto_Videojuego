@@ -11,7 +11,7 @@ import { InventoryService } from '../../core/services/inventory/inventory.servic
   template: `
     <div style="min-height: 100vh; padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: url('https://images.unsplash.com/photo-1613771404724-11d2d7a02294?auto=format&fit=crop&w=1200&q=60') no-repeat center center fixed; background-size: cover; position: relative; overflow-x: hidden;">
       
-      <!-- Overlay oscuro inmersivo aligerado para visibilidad del fondo de cartas -->
+      <!-- Overlay oscuro inmersivo original -->
       <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(10,10,15,0.45) 0%, rgba(5,5,10,0.85) 100%); pointer-events: none; z-index: 1;"></div>
 
       <div style="position: relative; z-index: 2; width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center;">
