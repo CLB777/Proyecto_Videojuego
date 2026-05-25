@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-gray-900 flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-gray-800 border-2 border-neon-blue rounded-xl p-8 shadow-[0_0_15px_rgba(0,243,255,0.4)]">
+    
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-black italic tracking-widest text-white mb-2 text-glow-blue uppercase">
+        {{ isLoginMode ? 'Conexión' : 'Registro' }}
+      </h1>
+      <p class="text-gray-400 text-sm uppercase tracking-wider">
+        {{ isLoginMode ? 'Accede a tu cuenta de Entrenador' : 'Crea tu perfil de Entrenador' }}
+      </p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-sm rounded">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+      
+      <!-- Username Field (Only for Registration) -->
+      <div *ngIf="!isLoginMode">
+        <label class="block text-neon-blue uppercase text-xs font-bold tracking-widest mb-1">Nombre de Usuario</label>
+        <input type="text" formControlName="username" 
+               class="w-full bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-neon-blue transition-colors">
+        <span *ngIf="authForm.get('username')?.invalid && authForm.get('username')?.touched" class="text-red-500 text-xs mt-1 block">
+          Usuario requerido (mín. 3 caracteres)
+        </span>
+      </div>
+
+      <!-- Email Field -->
+      <div>
+        <label class="block text-neon-blue uppercase text-xs font-bold tracking-widest mb-1">Correo Electrónico</label>
+        <input type="email" formControlName="email" 
+               class="w-full bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-neon-blue transition-colors">
+        <span *ngIf="authForm.get('email')?.invalid && authForm.get('email')?.touched" class="text-red-500 text-xs mt-1 block">
+          Ingresa un correo electrónico válido
+        </span>
+      </div>
+
+      <!-- Password Field -->
+      <div>
+        <label class="block text-neon-blue uppercase text-xs font-bold tracking-widest mb-1">Contraseña</label>
+        <input type="password" formControlName="password" 
+               class="w-full bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-neon-blue transition-colors">
+        <span *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched" class="text-red-500 text-xs mt-1 block">
+          La contraseña debe tener al menos 6 caracteres
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" [disabled]="authForm.invalid || loading"
+              class="w-full mt-4 bg-neon-blue text-black font-black uppercase tracking-widest p-4 rounded hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ loading ? 'Procesando...' : (isLoginMode ? 'Entrar al Juego' : 'Crear Cuenta') }}
+      </button>
+
+    </form>
+
+    <!-- Toggle Mode -->
+    <div class="mt-6 text-center">
+      <button type="button" (click)="toggleMode()" class="text-gray-400 text-sm hover:text-white underline decoration-neon-pink underline-offset-4 transition-colors">
+        {{ isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
+      </button>
+    </div>
+
+  </div>
+</div>

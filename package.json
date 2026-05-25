@@ -1,0 +1,44 @@
+{
+  "name": "proyecto-videojuego",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:Proyecto_Videojuego": "node dist/Proyecto_Videojuego/server/server.mjs"
+  },
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/platform-server": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@angular/ssr": "^21.2.8",
+    "@supabase/supabase-js": "^2.106.1",
+    "express": "^5.1.0",
+    "rxjs": "~7.8.0",
+    "sql.js": "^1.14.1",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.8",
+    "@angular/cli": "^21.2.8",
+    "@angular/compiler-cli": "^21.2.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.17.19",
+    "@types/sql.js": "^1.4.11",
+    "autoprefixer": "^10.5.0",
+    "jsdom": "^28.0.0",
+    "postcss": "^8.5.15",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}
