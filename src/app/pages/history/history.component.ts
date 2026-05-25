@@ -139,7 +139,11 @@ export class HistoryComponent implements OnInit {
         if (data) {
           this.onlineHistory = data.map((p: any) => {
             const isJugador1 = p.id_jugador1 === userAuth.user.id;
-            const opponentName = isJugador1 ? (p.jugador2?.username || 'Entrenador Online') : (p.jugador1?.username || 'Entrenador Online');
+            const u1 = p.jugador1;
+            const u2 = p.jugador2;
+            const u1Name = Array.isArray(u1) ? u1[0]?.username : u1?.username;
+            const u2Name = Array.isArray(u2) ? u2[0]?.username : u2?.username;
+            const opponentName = isJugador1 ? (u2Name || 'Entrenador Online') : (u1Name || 'Entrenador Online');
             return {
               timestamp: p.creada_en,
               result: p.ganador === userAuth.user.id ? 'win' : (p.ganador ? 'lose' : 'draw'),

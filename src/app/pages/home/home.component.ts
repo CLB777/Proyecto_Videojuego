@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase/supabase.service';
 import { InventoryService } from '../../core/services/inventory/inventory.service';
+import { AudioService } from '../../core/services/audio/audio.service';
 
 @Component({
   selector: 'app-home',
@@ -321,41 +322,10 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  audioCtx: AudioContext | null = null;
-
-  getAudioContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.audioCtx) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioContextClass) {
-        this.audioCtx = new AudioContextClass();
-      }
-    }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
-    return this.audioCtx;
-  }
+  private audioService = inject(AudioService);
 
   playClickSound() {
-    const ctx = this.getAudioContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const now = ctx.currentTime;
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.start(now);
-      osc.stop(now + 0.12);
-    } catch(e) {
-      console.warn(e);
-    }
+    this.audioService.playClick();
   }
 
   private supabase = inject(SupabaseService);
